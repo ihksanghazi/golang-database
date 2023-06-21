@@ -2,8 +2,10 @@ package golang_database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestExecSQL(t *testing.T) {
@@ -42,5 +44,45 @@ func TestQuerySQL(t *testing.T) {
 		}
 		fmt.Println("id : ",id)
 		fmt.Println("name : ",name)
+	}
+}
+
+func TestQuerySQLComplex(t *testing.T) {
+	db:= GetConnection()
+	defer db.Close()
+
+	ctx:=context.Background()
+
+	query:= "SELECT id,name,email,balance,rating,birth_date,married,created_at FROM customer"
+	rows,err:= db.QueryContext(ctx,query)
+	if err != nil{
+		panic(err)
+	}
+	defer rows.Close()
+
+	for rows.Next(){
+		var id,name string
+		var email sql.NullString
+		var balance int
+		var rating float64
+		var birth_date sql.NullTime
+		var created_at time.Time
+		var married bool
+		err:=rows.Scan(&id,&name,&email,&balance,&rating,&birth_date,&married,&created_at)
+		if err != nil{
+			panic(err)
+		}
+		fmt.Println("====================")
+		fmt.Println("id : ",id)
+		fmt.Println("name : ",name)
+		if email.Valid{
+			fmt.Println("email : ",email.String)
+		}
+		fmt.Println("rating : ",rating)
+		if birth_date.Valid{
+			fmt.Println("birth date : ",birth_date.Time)
+		}
+		fmt.Println("married : ",married)
+		fmt.Println("created at : ",created_at)
 	}
 }
