@@ -114,3 +114,31 @@ func TestSQLInjection(t *testing.T) {
 		fmt.Println("Gagal Login")
 	}
 }
+
+func TestSQLInjectionSafe(t *testing.T) {
+	db:= GetConnection()
+	defer db.Close()
+
+	ctx:=context.Background()
+
+	username:="admin' ; #"
+	password:="salah"
+
+	query:= "SELECT name FROM user WHERE name = ? AND password = ? LIMIT 1"
+	rows,err:= db.QueryContext(ctx,query,username,password)
+	if err != nil{
+		panic(err)
+	}
+	defer rows.Close()
+
+	if rows.Next(){
+		var username string
+		err:=rows.Scan(&username)
+		if err != nil{
+			panic(err)
+		}
+		fmt.Println("Sukses Login ",username)
+	}else{
+		fmt.Println("Gagal Login")
+	}
+}
